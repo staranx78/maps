@@ -10,7 +10,7 @@ A UI demo for the [Open-Meteo Weather Map Layer](https://github.com/open-meteo/w
 
 ## About
 
-This is a client-side app that fetches OMfiles from `data-spatial.open-meteo.com` and renders them with MapLibre GL. Weather tiles are fully rendered in the browser at the native model resolution — no server-side tile rendering required.
+This is a client-side app that fetches OMfiles from the public S3 data endpoint in production and renders them with MapLibre GL. Weather tiles are fully rendered in the browser at the native model resolution — no server-side tile rendering required.
 
 > Looking for the Open-Meteo API? See [open-meteo/open-meteo](https://github.com/open-meteo/open-meteo).
 
@@ -40,7 +40,7 @@ npm run lint      # prettier + eslint
 
 ### Data endpoint
 
-The app fetches OMfiles from `data-spatial.open-meteo.com` by default. Set `VITE_DATA_BASE_URI` (e.g. in `.env.local`) to point a build at a local or staging `data_spatial` endpoint.
+Production builds use `https://openmeteo.s3.amazonaws.com/data_spatial`, which accepts GitHub Pages referers. Development uses `data-spatial.open-meteo.com` by default. Set `VITE_DATA_BASE_URI` (e.g. in `.env.local`) to point a build at a local or staging `data_spatial` endpoint.
 
 The `data_spatial` tree is served from two places:
 
@@ -49,11 +49,15 @@ The `data_spatial` tree is served from two places:
 
 ### Cross-origin isolation
 
-The weather-map-layer renders through `SharedArrayBuffer`, which needs cross-origin isolation. The dev and preview servers send the required `COOP`/`COEP` headers via a plugin in `vite.config.ts`; in production the same headers come from `static/_headers` (Cloudflare Pages). If these headers are ever dropped, the app still works but falls back to a slower path that copies data to every worker.
+The weather-map-layer renders through `SharedArrayBuffer` when cross-origin isolation is available. The dev and preview servers send `COOP`/`COEP` headers via a plugin in `vite.config.ts`. GitHub Pages cannot set these headers, so the app self-hosts `coi-serviceworker.js`; its first visit registers the service worker and reloads, after which the worker supplies the isolation headers. The worker and WASM are imported from the weather-map-layer package's built `dist/` output and emitted by Vite as app-relative assets.
+
+### GitHub Pages
+
+The Pages workflow builds the static SvelteKit adapter output in `build/` and deploys it with GitHub Actions. This `maps` repository uses the `/maps` project-site base. Renaming the repository to `<username>.github.io` automatically changes the build base to `/` for a user site. The app dependency is pinned to the `EricEisaman/weather-map-layer` fork commit; that fork must include its built `dist/` output.
 
 ### Working on the weather-map-layer locally
 
-`package.json` pins `@openmeteo/weather-map-layer` to a git commit. To develop against a local checkout, link it:
+`package.json` pins `@openmeteo/weather-map-layer` to a git commit in the app's fork. The package is consumed from its built `dist/` output. To develop against a local checkout, link it:
 
 ```bash
 cd ../weather-map-layer && npm link && npm run build

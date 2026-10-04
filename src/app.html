@@ -2,6 +2,11 @@
 <html lang="en">
 	<head>
 		<meta charset="utf-8" />
+		<script>
+			if (!window.crossOriginIsolated && 'serviceWorker' in navigator) {
+				document.write('<script src="%sveltekit.assets%/coi-serviceworker.js"><\/script>');
+			}
+		</script>
 		<link rel="icon" href="%sveltekit.assets%/favicon.ico" />
 		<meta name="viewport" content="width=device-width, initial-scale=1" />
 		%sveltekit.head%

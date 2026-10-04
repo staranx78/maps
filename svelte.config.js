@@ -18,6 +18,10 @@ const buildVersion = () => {
 	}
 };
 
+const [repositoryOwner, repositoryName] = (process.env.GITHUB_REPOSITORY ?? '').split('/');
+const base =
+	repositoryName?.toLowerCase() === `${repositoryOwner?.toLowerCase()}.github.io` ? '' : '/maps';
+
 /** @type {import('@sveltejs/kit').Config} */
 const config = {
 	preprocess: [vitePreprocess()],
@@ -28,10 +32,11 @@ const config = {
 		adapter: adapter({
 			pages: 'build',
 			assets: 'build',
-			fallback: null,
+			fallback: '404.html',
 			precompress: false,
 			strict: true
 		}),
+		paths: { base },
 		// Poll _app/version.json so a deploy while the app is open surfaces the
 		// update toast (see +layout.svelte). The package version keeps its own
 		// job: resetting persisted state, see initStoredState in preferences.ts.
