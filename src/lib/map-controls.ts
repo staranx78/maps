@@ -143,6 +143,12 @@ export const getStyle = async () => {
 	const style = await fetch(
 		`https://static-assets.open-meteo.com/map-assets/styles/minimal-planet-maps${appliedStyleMode === 'dark' ? '-dark' : ''}${preferences.clipWater ? '-water-clip' : ''}.json`
 	).then((r) => r.json());
+	if (import.meta.env.VITE_GITHUB_PAGES === 'true' && style.sources?.openmaptiles) {
+		style.sources.openmaptiles.url =
+			'https://tiles.basemaps.cartocdn.com/vector/carto.streets/v1/tiles.json';
+		style.sources.openmaptiles.attribution +=
+			' © <a href="https://carto.com/attributions" target="_blank">CARTO</a>';
+	}
 
 	return preferences.globe ? { ...style, projection: { type: 'globe' } } : style;
 };
