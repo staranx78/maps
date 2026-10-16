@@ -25,6 +25,8 @@ jobs:
           cache: 'npm'
       - name: Configure GitHub Pages
         uses: actions/configure-pages@v5
+      - name: Allow HTTPS for Git dependencies
+        run: git config --global url."https://github.com/".insteadOf "ssh://git@github.com/"
       - name: Install dependencies
         run: npm ci
       - name: Build static site
